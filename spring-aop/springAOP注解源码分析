@@ -1,0 +1,17 @@
+SpringAOP的注解方式的实现
+1、首先实现AOP要在XML配置文件中配置如下的选项
+ <!--
+    proxy-target-class false是基于jdk的动态代理   true是基于类的动态代理（cglib）
+    解决目标对象内部的自我调用无法实施切面增强的问题。
+
+    -->
+    <aop:aspectj-autoproxy expose-proxy="true" proxy-target-class="true"/>
+ 那么肯定就用到了XML的解析器
+ 从解析器下手  网上找的资料是在AspectJAutoProxyBeanDefinitionParser中进行解析
+ 完成了两件事
+ （1） 注册AnnotationAwareAspectJAutoProxyCreator（AOP功能都是由这个功能完成的）
+ 在注册的时候要对之前是不是在内存中注册了一个AOP的Creator，
+ 如果是的话，就进行优先级的比较
+ （2）解析两个属性<aop:aspectj-autoproxy />
+2、AnnotationAwareAspectJAutoProxyCreator
+实现了BeanPostProcessor，就是在这个Bean在初始化之前进行执行
