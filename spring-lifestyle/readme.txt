@@ -1,0 +1,11 @@
+-----------SpringBeanInitializing-----------
+------------SpringBeanName has set--------------------
+----------setBeanName-----------------
+------------setFactory----------------
+----------------setApplicationContext----------------
+---------------SpringBean--postProcessBeforeInitialization-------------
+------------------------afterPropertiesSet---------------
+--------------myPostConstruct-----------------------
+---------------SpringBean--postProcessAfterInitialization-------------
+-------------------destroy---------------------------
+----------------------------myPrePostConstruct-----------------

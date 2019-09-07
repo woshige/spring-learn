@@ -1,4 +1,4 @@
-package com;
+package com.aop;
 
 import org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator;
 

@@ -15,3 +15,12 @@ SpringAOP的注解方式的实现
  （2）解析两个属性<aop:aspectj-autoproxy />
 2、AnnotationAwareAspectJAutoProxyCreator
 实现了BeanPostProcessor，就是在这个Bean在初始化之前进行执行
+SpringBeanTest is initializing
+set BeanFactory invoke
+set ApplicationContext invoke
+SpringBeanTest.postProcessBeforeInitialization
+@PostConstruct
+afterPropertiesSet invoke
+SpringBeanTest.postProcessAfterInitialization
+@PreDestroy
+destroy invoke
