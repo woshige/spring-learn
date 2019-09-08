@@ -19,5 +19,5 @@
     </bean>
     <!--自定义的BeanPostProcessor-->
     <bean class="com.aop.MyProcessor"/>
-
+    <bean class ="com.aop.PostConstructTest" init-method="initMethod" id="constructTest"/>
 </beans>

@@ -15,12 +15,110 @@ SpringAOP的注解方式的实现
  （2）解析两个属性<aop:aspectj-autoproxy />
 2、AnnotationAwareAspectJAutoProxyCreator
 实现了BeanPostProcessor，就是在这个Bean在初始化之前进行执行
-SpringBeanTest is initializing
-set BeanFactory invoke
-set ApplicationContext invoke
-SpringBeanTest.postProcessBeforeInitialization
-@PostConstruct
-afterPropertiesSet invoke
-SpringBeanTest.postProcessAfterInitialization
-@PreDestroy
-destroy invoke
+如何实现AOP的操作？
+（1）因为实现了BeanPostProcess
+ public Object postProcessAfterInitialization(@Nullable Object bean, String beanName)
+ throws BeansException {
+        if (bean != null) {
+        //创建一个缓存key
+            Object cacheKey = this.getCacheKey(bean.getClass(), beanName);
+            if (!this.earlyProxyReferences.contains(cacheKey)) {
+                //需要被代理 就去创建代理
+                return this.wrapIfNecessary(bean, beanName, cacheKey);
+            }
+        }
+        return bean;
+    }
+ 在实例化AnnotationAwareAspectJAutoProxyCreator之前，对AOP进行解析，并创建
+ 代理
+ （2）创建完毕之后要获取增强
+ getAdvicesAndAdvisorsForBean
+   @Nullable
+     protected Object[] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
+         List<Advisor> advisors = this.findEligibleAdvisors(beanClass, beanName);
+         return advisors.isEmpty() ? DO_NOT_PROXY : advisors.toArray();
+     }
+
+
+      protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
+      //找出符合所有条件的Advisor
+             List<Advisor> candidateAdvisors = this.findCandidateAdvisors();
+             List<Advisor> eligibleAdvisors = this.findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
+             this.extendAdvisors(eligibleAdvisors);
+             if (!eligibleAdvisors.isEmpty()) {
+                 eligibleAdvisors = this.sortAdvisors(eligibleAdvisors);
+             }
+
+             return eligibleAdvisors;
+         }
+
+获取增强的方法
+public List<Advisor> buildAspectJAdvisors() {
+        List<String> aspectNames = this.aspectBeanNames;
+        if (aspectNames == null) {
+            synchronized(this) {
+                aspectNames = this.aspectBeanNames;
+                if (aspectNames == null) {
+                    List<Advisor> advisors = new LinkedList();
+                    List<String> aspectNames = new LinkedList();
+                    String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(this.beanFactory, Object.class, true, false);
+                    String[] var18 = beanNames;
+                    int var19 = beanNames.length;
+
+                    for(int var7 = 0; var7 < var19; ++var7) {
+                        String beanName = var18[var7];
+                        if (this.isEligibleBean(beanName)) {
+                            Class<?> beanType = this.beanFactory.getType(beanName);
+                            //判断有没有注解
+                            if (beanType != null && this.advisorFactory.isAspect(beanType)) {
+                                aspectNames.add(beanName);
+                                AspectMetadata amd = new AspectMetadata(beanType, beanName);
+                                if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
+                                    MetadataAwareAspectInstanceFactory factory = new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+                                    List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
+                                    if (this.beanFactory.isSingleton(beanName)) {
+                                        this.advisorsCache.put(beanName, classAdvisors);
+                                    } else {
+                                        this.aspectFactoryCache.put(beanName, factory);
+                                    }
+
+                                    advisors.addAll(classAdvisors);
+                                } else {
+                                    if (this.beanFactory.isSingleton(beanName)) {
+                                        throw new IllegalArgumentException("Bean with name '" + beanName + "' is a singleton, but aspect instantiation model is not singleton");
+                                    }
+
+                                    MetadataAwareAspectInstanceFactory factory = new PrototypeAspectInstanceFactory(this.beanFactory, beanName);
+                                    this.aspectFactoryCache.put(beanName, factory);
+                                    advisors.addAll(this.advisorFactory.getAdvisors(factory));
+                                }
+                            }
+                        }
+                    }
+
+                    this.aspectBeanNames = aspectNames;
+                    return advisors;
+                }
+            }
+        }
+
+        if (aspectNames.isEmpty()) {
+            return Collections.emptyList();
+        } else {
+            List<Advisor> advisors = new LinkedList();
+            Iterator var3 = aspectNames.iterator();
+
+            while(var3.hasNext()) {
+                String aspectName = (String)var3.next();
+                List<Advisor> cachedAdvisors = (List)this.advisorsCache.get(aspectName);
+                if (cachedAdvisors != null) {
+                    advisors.addAll(cachedAdvisors);
+                } else {
+                    MetadataAwareAspectInstanceFactory factory = (MetadataAwareAspectInstanceFactory)this.aspectFactoryCache.get(aspectName);
+                    advisors.addAll(this.advisorFactory.getAdvisors(factory));
+                }
+            }
+
+            return advisors;
+        }
+    }

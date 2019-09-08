@@ -1,6 +1,5 @@
 package com.aop;
 
-import com.aop.SpringBeanTest;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 
