@@ -12,6 +12,7 @@
         <module>annotation-aop</module>
         <module>spring-aop</module>
         <module>spring-lifestyle</module>
+        <module>spring-assembling-bean</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
